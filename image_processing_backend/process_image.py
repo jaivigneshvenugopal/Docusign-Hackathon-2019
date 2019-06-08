@@ -1,5 +1,7 @@
 # Imported PIL Library from PIL import Image
 from PIL import Image
+import math
+import random
 from IPython import embed
 
 
@@ -62,9 +64,49 @@ def convert_grayscale(image):
     return new
 
 
+def envelope_color(image):
+    rgb_green = (71, 140, 20)
+    rgb_ground = (139, 135, 90)
+    # Get size
+    width, height = image.size
+
+    # Create new Image and a Pixel Map
+    new = create_image(width, height)
+    pixels = new.load()
+    boolean_2d_array = [[0 for i in range(height)] for j in range(width)]
+    # embed()
+
+    ground_color_map = []
+    # Get ground colour
+    for i in range(width):
+        for j in range(height):
+            # Get Pixel
+            pixel = get_pixel(image, i, j)
+            pixels[i, j] = pixel
+            distance = math.sqrt(sum([(a - b) ** 2 for a, b in zip(rgb_ground, pixel)]))
+            if distance < 35:
+                boolean_2d_array[i][j] = 1
+                ground_color_map.append(pixel)
+
+    # Remap greens
+    for i in range(width):
+        for j in range(height):
+            if boolean_2d_array[i][j] == 0:
+                # Get Pixel
+                pixel = get_pixel(image, i, j)
+                distance = math.sqrt(sum([(a - b) ** 2 for a, b in zip(rgb_green, pixel)]))
+                if distance < 100:
+                    pixels[i, j] = random.choice(ground_color_map)
+                boolean_2d_array[i][j] = 1
+
+    # Return new image
+    return new
+
+
 if __name__ == '__main__':
     path = '/Users/jaivignesh/Desktop/docusign/image_processing_backend/naturepic.jpg'
     image = open_image(path)
-    modified_image = convert_grayscale(image)
+    modified_image = envelope_color(image)
+    # modified_image = convert_grayscale(image)
     modified_image.show()
     # print('file runs')
