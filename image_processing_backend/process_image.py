@@ -67,7 +67,6 @@ def convert_grayscale(image):
 
 def envelope_color(image, threshold, bounding_box):
     rgb_green = (71, 140, 20)
-    rgb_ground = (129, 101, 87)
     # Get size
     width, height = image.size
 
@@ -82,26 +81,59 @@ def envelope_color(image, threshold, bounding_box):
         for j in range(height):
             # Get Pixel
             pixels[i, j] = get_pixel(image, i, j)
-            if bounding_box[0] < i < bounding_box[2] and bounding_box[1] < j < bounding_box[3]:
-                boolean_2d_array[i][j] = 1
+            # if bounding_box[0] < i < bounding_box[2] and bounding_box[1] < j < bounding_box[3]:
+            #     boolean_2d_array[i][j] = 1
 
     # Remap greens
     for i in range(width):
         for j in range(height):
+            # Get Pixel
+            pixel = get_pixel(image, i, j)
+            red = pixel[0]
+            green = pixel[1]
+            blue = pixel[2]
+            gray = (red * 0.299) + (green * 0.587) + (blue * 0.114)
+            distance = math.sqrt(sum([(a - b) ** 2 for a, b in zip(rgb_green, pixel)]))
             if boolean_2d_array[i][j] == 0:
-                # Get Pixel
-                pixel = get_pixel(image, i, j)
-                distance = math.sqrt(sum([(a - b) ** 2 for a, b in zip(rgb_green, pixel)]))
                 if distance < threshold:
-                    pixels[i, j] = rgb_ground
-                boolean_2d_array[i][j] = 2
+                    pixels[i, j] = (int(gray), int(gray), int(gray))
             elif boolean_2d_array[i][j] == 1:
-                pixel = get_pixel(image, i, j)
-                distance = math.sqrt(sum([(a - b) ** 2 for a, b in zip(rgb_green, pixel)]))
                 if distance < threshold/2:
-                    pixels[i, j] = rgb_ground
-                boolean_2d_array[i][j] = 2
+                    pixels[i, j] = (int(gray), int(gray), int(gray))
+            boolean_2d_array[i][j] = 2
+    # Return new image
+    return new
 
+
+def remove_greens(original_image, black_and_white_image, threshold):
+    rgb_green = (71, 140, 20)
+    width, height = original_image.size
+
+    # Create new Image and a Pixel Map
+    new = create_image(width, height)
+    pixels = new.load()
+    boolean_2d_array = [[0 for i in range(height)] for j in range(width)]
+    # embed()
+
+    # Get ground colour
+    for i in range(width):
+        for j in range(height):
+            pixels[i, j] = get_pixel(black_and_white_image, i, j)
+
+    # Remap greens
+    for i in range(width):
+        for j in range(height):
+            # Get Pixel
+            pixel = get_pixel(original_image, i, j)
+            white = 255
+            distance = math.sqrt(sum([(a - b) ** 2 for a, b in zip(rgb_green, pixel)]))
+            if boolean_2d_array[i][j] == 0:
+                if distance < threshold:
+                    pixels[i, j] = (int(white), int(white), int(white))
+            elif boolean_2d_array[i][j] == 1:
+                if distance < threshold/2:
+                    pixels[i, j] = (int(white), int(white), int(white))
+            boolean_2d_array[i][j] = 2
     # Return new image
     return new
 
@@ -123,7 +155,7 @@ def ml_part(image_name):
 
 
 if __name__ == '__main__':
-    image_name = 'naturetest.jpeg'
+    image_name = 'sample5.jpg'
     image_path = '/Users/jaivignesh/Desktop/docusign/image_processing_backend/' + image_name
     print('Running person detection algo...')
     bounding_box = ml_part(image_name)
@@ -134,7 +166,11 @@ if __name__ == '__main__':
     print('Processing image...')
     for i in range(30):
         modified_images.append(envelope_color(image, threshold, bounding_box))
-        threshold += 5
+        threshold += 15
+
+    for i in range(30):
+        modified_images.append(remove_greens(image, modified_images[-1], threshold))
+        threshold += 15
 
     print('Generating gif...')
-    modified_images[0].save(image_name, save_all=True, append_images=modified_images, duration=100, loop=0)
+    modified_images[0].save(image_name.split('.')[0] + '.gif', save_all=True, append_images=modified_images, duration=100, loop=0)
