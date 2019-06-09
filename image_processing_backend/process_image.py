@@ -64,7 +64,7 @@ def convert_grayscale(image):
     return new
 
 
-def envelope_color(image):
+def envelope_color(image, threshold):
     rgb_green = (71, 140, 20)
     rgb_ground = (139, 135, 90)
     # Get size
@@ -95,8 +95,9 @@ def envelope_color(image):
                 # Get Pixel
                 pixel = get_pixel(image, i, j)
                 distance = math.sqrt(sum([(a - b) ** 2 for a, b in zip(rgb_green, pixel)]))
-                if distance < 100:
-                    pixels[i, j] = random.choice(ground_color_map)
+                if distance < threshold:
+                    # pixels[i, j] = random.choice(ground_color_map)
+                    pixels[i, j] = rgb_ground
                 boolean_2d_array[i][j] = 1
 
     # Return new image
@@ -105,8 +106,17 @@ def envelope_color(image):
 
 if __name__ == '__main__':
     path = '/Users/jaivignesh/Desktop/docusign/image_processing_backend/naturepic.jpg'
+    # path = '/Users/jaivignesh/Desktop/docusign/image_processing_backend/naturepic1.jpg'
     image = open_image(path)
-    modified_image = envelope_color(image)
-    # modified_image = convert_grayscale(image)
-    modified_image.show()
-    # print('file runs')
+    threshold = 10
+    modified_images = []
+
+    print('Processing image...')
+    for i in range(30):
+        modified_images.append(envelope_color(image, threshold))
+        threshold += 5
+
+    print('Generating gif...')
+    modified_images[0].save("output.gif", save_all=True, append_images=modified_images, duration=100, loop=0)
+    # for i in range(len(modified_images)):
+    #     modified_images[i].show()
