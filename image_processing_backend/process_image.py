@@ -65,7 +65,7 @@ def convert_grayscale(image):
     return new
 
 
-def envelope_color(image, threshold, bounding_box):
+def envelope_color(image, threshold):
     rgb_green = (71, 140, 20)
     # Get size
     width, height = image.size
@@ -75,6 +75,8 @@ def envelope_color(image, threshold, bounding_box):
     pixels = new.load()
     boolean_2d_array = [[0 for i in range(height)] for j in range(width)]
     # embed()
+
+    pixel_hist = []
 
     # Get ground colour
     for i in range(width):
@@ -87,53 +89,42 @@ def envelope_color(image, threshold, bounding_box):
     # Remap greens
     for i in range(width):
         for j in range(height):
-            # Get Pixel
-            pixel = get_pixel(image, i, j)
-            red = pixel[0]
-            green = pixel[1]
-            blue = pixel[2]
-            gray = (red * 0.299) + (green * 0.587) + (blue * 0.114)
-            distance = math.sqrt(sum([(a - b) ** 2 for a, b in zip(rgb_green, pixel)]))
-            if boolean_2d_array[i][j] == 0:
-                if distance < threshold:
+            if i > width/2:
+                # Get Pixel
+                pixel = get_pixel(image, i, j)
+                red = pixel[0]
+                green = pixel[1]
+                blue = pixel[2]
+                gray = (red * 0.299) + (green * 0.587) + (blue * 0.114)
+                distance = math.sqrt(sum([(a - b) ** 2 for a, b in zip(rgb_green, pixel)]))
+                if boolean_2d_array[i][j] == 0 and distance < threshold:
                     pixels[i, j] = (int(gray), int(gray), int(gray))
-            elif boolean_2d_array[i][j] == 1:
-                if distance < threshold/2:
+                    pixel_hist.append((i, j))
+                    boolean_2d_array[i][j] = 2
+                elif boolean_2d_array[i][j] == 1 and distance < threshold/2:
                     pixels[i, j] = (int(gray), int(gray), int(gray))
-            boolean_2d_array[i][j] = 2
+                    pixel_hist.append((i, j))
+                    boolean_2d_array[i][j] = 2
     # Return new image
-    return new
+    return new, pixel_hist
 
 
-def remove_greens(original_image, black_and_white_image, threshold):
-    rgb_green = (71, 140, 20)
-    width, height = original_image.size
-
-    # Create new Image and a Pixel Map
+def whiten_image(image, pixel_hist):
+    width, height = image.size
     new = create_image(width, height)
     pixels = new.load()
-    boolean_2d_array = [[0 for i in range(height)] for j in range(width)]
-    # embed()
 
     # Get ground colour
     for i in range(width):
         for j in range(height):
-            pixels[i, j] = get_pixel(black_and_white_image, i, j)
+            pixels[i, j] = get_pixel(image, i, j)
+            # if bounding_box[0] < i < bounding_box[2] and bounding_box[1] < j < bounding_box[3]:
+            #     boolean_2d_array[i][j] = 1
 
-    # Remap greens
-    for i in range(width):
-        for j in range(height):
-            # Get Pixel
-            pixel = get_pixel(original_image, i, j)
-            white = 255
-            distance = math.sqrt(sum([(a - b) ** 2 for a, b in zip(rgb_green, pixel)]))
-            if boolean_2d_array[i][j] == 0:
-                if distance < threshold:
-                    pixels[i, j] = (int(white), int(white), int(white))
-            elif boolean_2d_array[i][j] == 1:
-                if distance < threshold/2:
-                    pixels[i, j] = (int(white), int(white), int(white))
-            boolean_2d_array[i][j] = 2
+    # Remap whites
+    for i in range(len(pixel_hist)):
+        pixels[pixel_hist[i][0], pixel_hist[i][1]] = (255, 255, 255)
+
     # Return new image
     return new
 
@@ -155,22 +146,26 @@ def ml_part(image_name):
 
 
 if __name__ == '__main__':
-    image_name = 'sample5.jpg'
+    image_name = 'sample4.jpg'
     image_path = '/Users/jaivignesh/Desktop/docusign/image_processing_backend/' + image_name
     print('Running person detection algo...')
-    bounding_box = ml_part(image_name)
+    # bounding_box = ml_part(image_name)
     image = open_image(image_path)
     threshold = 10
     modified_images = []
+    history_pixel_change = []
 
     print('Processing image...')
-    for i in range(30):
-        modified_images.append(envelope_color(image, threshold, bounding_box))
-        threshold += 15
+    for i in range(40):
+        new_frame, hist = envelope_color(image, threshold)
+        modified_images.append(new_frame)
+        history_pixel_change.append(hist)
+        threshold += 5
 
-    for i in range(30):
-        modified_images.append(remove_greens(image, modified_images[-1], threshold))
-        threshold += 15
+    # white_images = []
+    # for i in range(len(history_pixel_change)):
+    #     white_images.append(whiten_image(modified_images[-1], history_pixel_change[i]))
+    # modified_images += white_images
 
     print('Generating gif...')
     modified_images[0].save(image_name.split('.')[0] + '.gif', save_all=True, append_images=modified_images, duration=100, loop=0)
