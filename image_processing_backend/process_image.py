@@ -67,7 +67,7 @@ def convert_grayscale(image):
 
 def envelope_color(image, threshold, bounding_box):
     rgb_green = (71, 140, 20)
-    rgb_ground = (139, 135, 90)
+    rgb_ground = (129, 101, 87)
     # Get size
     width, height = image.size
 
@@ -112,8 +112,8 @@ def ml_part(image_name):
     detector.setModelTypeAsRetinaNet()
     detector.setModelPath(os.path.join(execution_path, "resnet50_coco_best_v2.0.1.h5"))
     detector.loadModel()
-    detections = detector.detectObjectsFromImage(input_image=os.path.join(execution_path, 'naturetest.jpeg'),
-                                                 output_image_path=os.path.join(execution_path, "newimage.jpg"))
+    detections = detector.detectObjectsFromImage(input_image=os.path.join(execution_path, image_name),
+                                                 output_image_path=os.path.join(execution_path, 'new_' + image_name))
 
     for eachObject in detections:
         if eachObject["name"] == 'person':
@@ -123,10 +123,11 @@ def ml_part(image_name):
 
 
 if __name__ == '__main__':
-    path = '/Users/jaivignesh/Desktop/docusign/image_processing_backend/naturetest.jpeg'
+    image_name = 'naturetest.jpeg'
+    image_path = '/Users/jaivignesh/Desktop/docusign/image_processing_backend/' + image_name
     print('Running person detection algo...')
-    bounding_box = ml_part(path)
-    image = open_image(path)
+    bounding_box = ml_part(image_name)
+    image = open_image(image_path)
     threshold = 10
     modified_images = []
 
@@ -136,4 +137,4 @@ if __name__ == '__main__':
         threshold += 5
 
     print('Generating gif...')
-    modified_images[0].save("output.gif", save_all=True, append_images=modified_images, duration=100, loop=0)
+    modified_images[0].save(image_name, save_all=True, append_images=modified_images, duration=100, loop=0)
