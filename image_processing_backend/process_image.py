@@ -1,7 +1,8 @@
 # Imported PIL Library from PIL import Image
 from PIL import Image
 import math
-import random
+from imageai.Detection import ObjectDetection
+import os
 from IPython import embed
 
 
@@ -64,7 +65,7 @@ def convert_grayscale(image):
     return new
 
 
-def envelope_color(image, threshold):
+def envelope_color(image, threshold, bounding_box):
     rgb_green = (71, 140, 20)
     rgb_ground = (139, 135, 90)
     # Get size
@@ -76,17 +77,13 @@ def envelope_color(image, threshold):
     boolean_2d_array = [[0 for i in range(height)] for j in range(width)]
     # embed()
 
-    ground_color_map = []
     # Get ground colour
     for i in range(width):
         for j in range(height):
             # Get Pixel
-            pixel = get_pixel(image, i, j)
-            pixels[i, j] = pixel
-            distance = math.sqrt(sum([(a - b) ** 2 for a, b in zip(rgb_ground, pixel)]))
-            if distance < 35:
+            pixels[i, j] = get_pixel(image, i, j)
+            if bounding_box[0] < i < bounding_box[2] and bounding_box[1] < j < bounding_box[3]:
                 boolean_2d_array[i][j] = 1
-                ground_color_map.append(pixel)
 
     # Remap greens
     for i in range(width):
@@ -96,27 +93,47 @@ def envelope_color(image, threshold):
                 pixel = get_pixel(image, i, j)
                 distance = math.sqrt(sum([(a - b) ** 2 for a, b in zip(rgb_green, pixel)]))
                 if distance < threshold:
-                    # pixels[i, j] = random.choice(ground_color_map)
                     pixels[i, j] = rgb_ground
-                boolean_2d_array[i][j] = 1
+                boolean_2d_array[i][j] = 2
+            elif boolean_2d_array[i][j] == 1:
+                pixel = get_pixel(image, i, j)
+                distance = math.sqrt(sum([(a - b) ** 2 for a, b in zip(rgb_green, pixel)]))
+                if distance < threshold/2:
+                    pixels[i, j] = rgb_ground
+                boolean_2d_array[i][j] = 2
 
     # Return new image
     return new
 
 
+def ml_part(image_name):
+    execution_path = os.getcwd()
+    detector = ObjectDetection()
+    detector.setModelTypeAsRetinaNet()
+    detector.setModelPath(os.path.join(execution_path, "resnet50_coco_best_v2.0.1.h5"))
+    detector.loadModel()
+    detections = detector.detectObjectsFromImage(input_image=os.path.join(execution_path, 'naturetest.jpeg'),
+                                                 output_image_path=os.path.join(execution_path, "newimage.jpg"))
+
+    for eachObject in detections:
+        if eachObject["name"] == 'person':
+            bounding_box = eachObject["box_points"]
+
+    return bounding_box
+
+
 if __name__ == '__main__':
-    path = '/Users/jaivignesh/Desktop/docusign/image_processing_backend/naturepic.jpg'
-    # path = '/Users/jaivignesh/Desktop/docusign/image_processing_backend/naturepic1.jpg'
+    path = '/Users/jaivignesh/Desktop/docusign/image_processing_backend/naturetest.jpeg'
+    print('Running person detection algo...')
+    bounding_box = ml_part(path)
     image = open_image(path)
     threshold = 10
     modified_images = []
 
     print('Processing image...')
     for i in range(30):
-        modified_images.append(envelope_color(image, threshold))
+        modified_images.append(envelope_color(image, threshold, bounding_box))
         threshold += 5
 
     print('Generating gif...')
     modified_images[0].save("output.gif", save_all=True, append_images=modified_images, duration=100, loop=0)
-    # for i in range(len(modified_images)):
-    #     modified_images[i].show()
