@@ -25,18 +25,19 @@ app = Flask(__name__)
 
 # Obtain an OAuth access token from https://developers.hqtest.tst/oauth-token-generator
 access_token = 'eyJ0eXAiOiJNVCIsImFsZyI6IlJTMjU2Iiwia2lkIjoiNjgxODVmZjEtNGU1MS00Y2U5LWFmMWMtNjg5ODEyMjAzMzE3In0.AQoAAAABAAUABwAAD_y-8OzWSAgAAE8fzTPt1kgCAEbEPnJQ6jlLn14649CC1dcVAAEAAAAYAAEAAAAFAAAADQAkAAAAZjBmMjdmMGUtODU3ZC00YTcxLWE0ZGEtMzJjZWNhZTNhOTc4EgABAAAACwAAAGludGVyYWN0aXZlMACAeGO-8OzWSDcAUxfloEHtykuVjAG7RfCZwg.an7XgHr3HsKWGN_ss7iOvcylXi7Py95O82eD-j6IxiK391cj5NYN8KkdwRKYTt-nFjRPqT9pnyNtRdwI4R-cD0ewmIPRBd693Sx907xpiFo80fwYECJJYzagFP2urwk4kVUkgwIIByRMSEvQ3iV_KmI_3jsTY_Ok_e0fu1_tIvgcT0_Yl709UlITo53bkM6ohycNsgyyzPCyrFxLFSAihnXvHmJt5yeGzozj_x9BxiAR29NDdL7uQXfFxdntfx2v18jLe92uVTwFscwesJv7u6imaOZZN3IUriAUhPjFshACfC4-nuwMLH_YML6JhQl8BKExLxxlsYcMQevXPusnwg'
-### Obtain your accountId from demo.docusign.com -- the account id is shown in the drop down on the
+#### Obtain your accountId from demo.docusign.com -- the account id is shown in the drop down on the
 # upper right corner of the screen by your picture or the default picture. 
 account_id = 'c1a625d3-27d3-4260-b4cd-f9c647e3618e'
-# Recipient Information:
+## Recipient Information:
 recipientname = 'Clement Goh'
 recipientemail = 'clement@leadiq.com'
 # The document you wish to send. Path is relative to the root directory of this repo.
 file_name_path = 'demo_documents/Petition.pdf'
 base_path = 'https://demo.docusign.net/restapi'
-#base_url = 'http://localhost:5000'
-base_url = 'https://hellodocusign.appspot.com'
-client_user_id = '123'
+base_url = 'http://localhost:5000'
+#base_url = 'https://docusignbackendproject.herokuapp.com/'
+#base_url = 'https://hellodocusign.appspot.com'
+client_user_id = 'c1a625d3-27d3-4260-b4cd-f9c647e3618e'
 authentication_method = 'None' 
 
 # Set FLASK_ENV to development if it is not already set
