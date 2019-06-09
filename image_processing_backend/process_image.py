@@ -146,7 +146,7 @@ def ml_part(image_name):
 
 
 if __name__ == '__main__':
-    image_name = 'sample4.jpg'
+    image_name = 'sample6.jpg'
     image_path = '/Users/jaivignesh/Desktop/docusign/image_processing_backend/' + image_name
     print('Running person detection algo...')
     # bounding_box = ml_part(image_name)
@@ -168,4 +168,4 @@ if __name__ == '__main__':
     # modified_images += white_images
 
     print('Generating gif...')
-    modified_images[0].save(image_name.split('.')[0] + '.gif', save_all=True, append_images=modified_images, duration=100, loop=0)
+    modified_images[0].save(image_name.split('.')[0] + '.gif', save_all=True, append_images=modified_images, duration=150, loop=0)
